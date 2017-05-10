@@ -1,0 +1,1 @@
+This is the README for the Truss Javascript App Exercise, written by William Simon on 5/10/2017

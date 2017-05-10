@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Truss Engineering Exercise</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+</head>
+
+<body onload="print_data()">
+    <h1>Truss Workflows</h1>
+
+    <script>
+        $.get("https://messagehub.herokuapp.com/messages.json", function(data){
+            console.log(data);
+        })
+
+        function print_data(){
+            console.log($.data);
+        }
+    </script>
+</body>
+</html>
