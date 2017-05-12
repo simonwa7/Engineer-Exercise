@@ -2,19 +2,165 @@
 <html>
 <head>
     <title>Truss Engineering Exercise</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-</head>
 
-<body onload="print_data()">
-    <h1>Truss Workflows</h1>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="semantic.css">
+    <link rel="stylesheet" type="text/css" href="main.css">
 
     <script>
-        $.get("https://messagehub.herokuapp.com/messages.json", function(data){
-            console.log(data);
+        $.get("https://truss-exercise.herokuapp.com/fake_monthly_data", function(data){
+            information = data;
+            //console.log(information);
         })
+    </script>
+</head>
 
-        function print_data(){
-            console.log($.data);
+<body>
+    <h1>Truss Workflows</h1>
+    <p>
+    <h3>Possible Actions:</h3> 
+        <div class="ui list action_list">
+          <div class="item">
+            <!--<i class="map marker icon"></i>-->
+            <div class="content">
+              <a class="header"><button onclick="add_get_contacts()">Get Contacts</button></a>
+              <div class="description">Get all of your current contacts</div>
+            </div>
+          </div>
+          <div class="item">
+            <!--<i class="map marker icon"></i>-->
+            <div class="content">
+              <a class="header"><button onclick="add_filter_contacts_by_date()">Filter Contacts by Date</button></a>
+              <div class="description">Filter your contacts to those last contacted more than 30 days ago.</div>
+            </div>
+          </div>
+          <div class="item">
+            <!--<i class="map marker icon"></i>-->
+            <div class="content">
+              <a class="header"><button onclick="add__adding_a_personal_note()">Add a Personal Note</button></a>
+              <div class="description">Write a personal note that will be added to any messages you send to your contacts.</div>
+            </div>
+          </div>
+          <div class="item">
+            <!--<i class="map marker icon"></i>-->
+            <div class="content">
+              <a class="header"><button onclick="add_email_contacts()">Email Contacts</button></a>
+              <div class="description">Email your current contact list. If a personal message has been defined, it will be sent
+              in these emails. If no message is defined, a generic message will be attached.</div>
+            </div>
+          </div>
+        </div>
+    </p>
+
+    <p class="workflow_list">
+        <h3>Current Workflow:</h3>
+        <div class="ui list workflow_list">
+            <div id="workflow">
+
+            </div>
+        </div>
+    </p>
+
+    <div class="buttons">
+        <button onclick="save_workflow()">Save Workflow</button>
+        <button onclick="delete_workflow()">Delete Current Workflow</button>
+    </div>
+
+    <p>
+        <h3>Saved Workflows</h3>
+        <div class="ui list saved_workflow_list">
+            <div id="saved_flows">
+            </div>
+        </div>
+    </p>
+
+    <script>
+        var information; 
+        var num = 1;
+        var current_workflow = [];
+        var contacts;
+        var contactEmail = {"contactId":1, "subject":"test subject", "bodyText": "test response", "bodyHtml": "<strong>test response</strong>"}
+
+        function add_get_contacts(){
+            document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Get Contacts</a><div class="description">Get all of your current contacts</div></div></div>';
+            current_workflow.push("Get Contacts");
+        }
+
+        function add_filter_contacts_by_date(){
+            document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Filter Contacts by Date</a><div class="description">Filter your contacts to those last contacted more than 30 days ago.</div></div></div>';
+            current_workflow.push("Filter Contacts by Date");
+        }
+
+        function add__adding_a_personal_note(){
+            document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Add a Personal Note</a><div class="description">Write a personal note that will be added to any messages you send to your contacts.</div></div></div>';
+            current_workflow.push("Add a Personal Note");
+        }
+
+        function add_email_contacts(){
+            document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Email Contacts</a><div class="description">Email your current contact list. If a personal message has been defined, it will be sent in these emails. If no message is defined, a generic message will be attached.</div></div></div>';
+            current_workflow.push("Email Contacts");
+        }
+
+        function delete_workflow(){
+            document.getElementById('workflow').innerHTML = '';
+        }
+
+        function save_workflow(){
+            var name = 'Workflow' + num;
+            document.getElementById('saved_flows').innerHTML += '<button onclick="execute_workflow(' + "'" + num + "'" + ')">' + name + '</button>';
+            localStorage.setItem(name, JSON.stringify(current_workflow));
+            localStorage.storeTaskWorkflow()
+            num++;
+        }
+
+        function execute_workflow(num){
+            var workflow_name = 'Workflow' + num;
+            var data = localStorage.getItem(workflow_name);
+            var parsed_data = JSON.parse(data);
+
+            for (var i = 0; i < parsed_data.length; i++){
+                if (parsed_data[i] === 'Get Contacts'){
+                    console.log("getting contacts");
+                    get_contacts();
+                }else if (parsed_data[i] === "Filter Contacts by Date"){
+                    console.log("filtering");
+                    filter_contacts_by_date();
+                }else if (parsed_data[i] === "Add a Personal Note"){
+                    console.log('personal');
+                    add_a_personal_note();
+                }else if (parsed_data[i] === "Email Contacts"){
+                    console.log('emailing');
+                    email_contacts();
+                }
+            }
+        }
+
+        function get_contacts(){
+            contacts = localStorage.getContacts($userId);
+        }
+
+        function filter_contacts_by_date(){
+            var new_contacts;
+            var thirtyDaysAgo = new Date(new Date().getTime() - 1000 * 60 * 50 * 24 * 30);
+
+            for (var i = 0; i < contacts.length; i++){
+                if (contacts[i].lastContactedAt < thirtyDaysAgo){
+                    new_contacts.push(contacts[i]);
+                }
+            }
+
+            contacts = new_contacts;
+        }
+
+        function add_a_personal_note(){
+            var task = localStorage.getTask($taskId);
+            contactEmail.bodyText = task.data.answers.personalNote;
+        }
+
+        function email_contacts(){
+            for (var i = 0; i < contacts.length; i++){
+                localStorage.sendContactEmail($contactEmail);
+            }
         }
     </script>
 </body>

@@ -2,10 +2,11 @@
   "engines": {
     "node": "5.9.1"
   },
-  "scripts":{
+  "scripts": {
     "start": "node sever.js"
   },
   "dependencies": {
-    "express": "latest"
+    "express": "latest",
+    "semantic-ui": "^2.2.10"
   }
 }
