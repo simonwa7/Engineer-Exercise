@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="main.css">
 
     <script>
+    //This is only used to simulate getting the data from the back-end server. 
         $.get("https://truss-exercise.herokuapp.com/fake_monthly_data", function(data){
             information = data;
             //console.log(information);
@@ -17,6 +18,8 @@
 
 <body>
     <h1>Truss Workflows</h1>
+
+    <!--This section shows a list of the possible actions defined by the app that the client can use to create a workflow-->
     <p>
     <h3>Possible Actions:</h3> 
         <div class="ui list action_list">
@@ -52,6 +55,7 @@
         </div>
     </p>
 
+    <!--This section shows the workflow currently being created-->
     <p class="workflow_list">
         <h3>Current Workflow:</h3>
         <div class="ui list workflow_list">
@@ -62,101 +66,146 @@
     </p>
 
     <div class="buttons">
-        <button onclick="save_workflow()">Save Workflow</button>
+        <button onclick="save_workflow()">Save Current Workflow</button>
         <button onclick="delete_workflow()">Delete Current Workflow</button>
     </div>
 
+    <!-- This section shows the previously defined workflows-->
     <p>
         <h3>Saved Workflows</h3>
+
         <div class="ui list saved_workflow_list">
             <div id="saved_flows">
             </div>
         </div>
+        <p>Press the button to execute the associated workflow</p>
     </p>
 
     <script>
+        // data obtained from the server
         var information; 
-        var num = 1;
-        var current_workflow = [];
-        var contacts;
-        var contactEmail = {"contactId":1, "subject":"test subject", "bodyText": "test response", "bodyHtml": "<strong>test response</strong>"}
 
+        // number of the workflow currently being worked on
+        var num = 1;
+
+        // an array of actions corresponding to the current workflow
+        var current_workflow = [];
+
+        // an array containing the contacts of the client (obtained using either the Truss library or server side data)
+        var contacts = [];
+
+        // a blank contactEmail object 
+        var contactEmail = {"contactId":1, "subject":"test subject", "bodyText": "test response", "bodyHtml": "<strong>test response</strong>"};
+
+        // This function is called when the action "Get Contacts" is added to the current workflow. It edits the html of the current workflow section 
+        // and then pushes the action into the workflow array.
         function add_get_contacts(){
             document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Get Contacts</a><div class="description">Get all of your current contacts</div></div></div>';
             current_workflow.push("Get Contacts");
         }
 
+        // This function behaves just as the add_get_contacts function behaves, yet for the action "Filter Contacts by Date"
         function add_filter_contacts_by_date(){
             document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Filter Contacts by Date</a><div class="description">Filter your contacts to those last contacted more than 30 days ago.</div></div></div>';
             current_workflow.push("Filter Contacts by Date");
         }
 
+        // This function behaves just as the add_get_contacts function behaves, yet for the action "Add a Personal Note"
         function add__adding_a_personal_note(){
             document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Add a Personal Note</a><div class="description">Write a personal note that will be added to any messages you send to your contacts.</div></div></div>';
             current_workflow.push("Add a Personal Note");
         }
 
+        // This function behaves just as the add_get_contacts function behaves, yet for the action "Email Contacts"
         function add_email_contacts(){
             document.getElementById('workflow').innerHTML += '<div class="item"><div class="content"><a class="header">Email Contacts</a><div class="description">Email your current contact list. If a personal message has been defined, it will be sent in these emails. If no message is defined, a generic message will be attached.</div></div></div>';
             current_workflow.push("Email Contacts");
         }
 
+        // This function is invoked when the client chooses to delete their current workflow. It removes the html in the current workflow section
+        // and removes everything from the array current_workflow.
         function delete_workflow(){
             document.getElementById('workflow').innerHTML = '';
+            current_workflow = [];
         }
 
+        // This function is called when the client chooses to save their workflow. It edits the html of both the current workflow and Saved workflow
+        // sections, and edits the associated data in the app. 
         function save_workflow(){
             var name = 'Workflow' + num;
+            
             document.getElementById('saved_flows').innerHTML += '<button onclick="execute_workflow(' + "'" + num + "'" + ')">' + name + '</button>';
+            document.getElementById('workflow').innerHTML = '';
+            
+            // saves the current workflow to local storage (could also be saved to a server side database here via a POST route)
             localStorage.setItem(name, JSON.stringify(current_workflow));
-            localStorage.storeTaskWorkflow()
+            //localStorage.storeTaskWorkflow()
+            
+            // resets the current workflow array
+            current_workflow = [];
+
+            // updates the workflow number being worked on by the client
             num++;
         }
 
+        // This function loops through the array corresponding to the desired workflow's commands, calling the functions associated with each action. 
         function execute_workflow(num){
+
             var workflow_name = 'Workflow' + num;
+
+            // gets the workflow actions from local storage
             var data = localStorage.getItem(workflow_name);
             var parsed_data = JSON.parse(data);
 
+            // loops the the array of actions
             for (var i = 0; i < parsed_data.length; i++){
                 if (parsed_data[i] === 'Get Contacts'){
-                    console.log("getting contacts");
+                    //console.log("getting contacts");
                     get_contacts();
                 }else if (parsed_data[i] === "Filter Contacts by Date"){
-                    console.log("filtering");
+                    //console.log("filtering");
                     filter_contacts_by_date();
                 }else if (parsed_data[i] === "Add a Personal Note"){
-                    console.log('personal');
+                    //console.log('personal');
                     add_a_personal_note();
                 }else if (parsed_data[i] === "Email Contacts"){
-                    console.log('emailing');
+                    //console.log('emailing');
                     email_contacts();
                 }
             }
         }
 
+        // This function executes the "Get Contacts" action
         function get_contacts(){
             contacts = localStorage.getContacts($userId);
         }
 
+        // This function executes the "Filter Contacts by Date" action
         function filter_contacts_by_date(){
-            var new_contacts;
+            var new_contacts = [];
             var thirtyDaysAgo = new Date(new Date().getTime() - 1000 * 60 * 50 * 24 * 30);
 
             for (var i = 0; i < contacts.length; i++){
+                
+                // If the current contact was last contacted more than 30 days ago, add the contact to the new array.
                 if (contacts[i].lastContactedAt < thirtyDaysAgo){
                     new_contacts.push(contacts[i]);
                 }
-            }
 
-            contacts = new_contacts;
+                // If the contact have been looped through entirely, set the old contact list to the new one
+                if (i+1 == contacts.length){
+                    contacts = new_contacts;
+                }
+            }
         }
 
+        // This function executes the "Add a Personal Note" action
         function add_a_personal_note(){
             var task = localStorage.getTask($taskId);
             contactEmail.bodyText = task.data.answers.personalNote;
         }
 
+        // This function executes the "Email Contacts" action
         function email_contacts(){
             for (var i = 0; i < contacts.length; i++){
                 localStorage.sendContactEmail($contactEmail);
