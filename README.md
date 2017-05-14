@@ -15,6 +15,7 @@ app, if the Truss library were properly defined, will then begin execution of ea
 workflow is complete.
 
 Future Changes: 
+
     1. The only current method to alter a workflow is to delete its entire contents and begin from scratch. A
     more user-friendly implementation could include a drag and drop list that would alter the order, or an even
     more simple method, delete only the most recently added action. These implementations would allow for a more 
